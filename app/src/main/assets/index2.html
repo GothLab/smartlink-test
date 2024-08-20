@@ -50,11 +50,7 @@
                 eval(command); // Caution: using eval can be dangerous if the command is not sanitized.
             }
 
-            // Simulate receiving command via Bluetooth
-            window.addEventListener('message', function (event) {
-                if (event.data.command) {
-                    executeJsCommand(event.data.command);
-                }
+
             });
         </script>
         </body>

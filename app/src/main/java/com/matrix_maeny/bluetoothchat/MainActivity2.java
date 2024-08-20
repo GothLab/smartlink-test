@@ -104,4 +104,6 @@ public class MainActivity2 extends AppCompatActivity {
         startActivity(new Intent(MainActivity2.this, AboutActivity.class));
         return true;
     }
+
+
 }

@@ -2,6 +2,8 @@ package com.matrix_maeny.bluetoothchat;
 
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.JavascriptInterface;
+import android.util.Log;
 
 import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
@@ -808,11 +810,18 @@ public class MainActivity extends AppCompatActivity {
 
         switch (msg.what) {
             case MESSAGE_READ:
-                // read data
+
                 bytes = (byte[]) msg.obj;
                 message = new String(bytes, 0, msg.arg1);
                 chatList.add(message);
                 chatPosition.add((byte) 1);
+
+                // Execute JavaScript command if it's a Swiper command
+                if (message.startsWith("swiper")) {
+                    WebView webView = findViewById(R.id.webView);
+                    webView.post(() -> webView.evaluateJavascript(message, null));
+                }
+                Log.d("MessageHandler", "Received message: " + message);
                 break;
             case MESSAGE_WRITE:
 //                // write data
@@ -831,6 +840,19 @@ public class MainActivity extends AppCompatActivity {
         return true;
     });
 
+
+    private WebView webView;
+
+    // Add this method
+    @JavascriptInterface
+    public void sendJsCommand(String command) {
+        if (sendReceive != null) {
+            sendReceive.writeMessage(command.getBytes());
+        }
+    }
+
+
+
     private void startChatting() {
         commandCenterLayout.setVisibility(View.GONE);
         chatLayout.setVisibility(View.VISIBLE);
@@ -847,16 +869,19 @@ public class MainActivity extends AppCompatActivity {
         String tempName = "Target : " + targetName;
         clientName.setText(tempName);
 
-        // Show the WebView and load the URL
         WebView webView = findViewById(R.id.webView);
         webView.setVisibility(View.VISIBLE);
         webView.getSettings().setJavaScriptEnabled(true);
-        // Load different HTML files based on whether it's the host or client
+        webView.addJavascriptInterface(this, "Android");
+        webView.addJavascriptInterface(new WebAppInterface(), "Android");
+
         if (name.equals("Client")) {
-            webView.loadUrl("file:///android_asset/index2.html");  // Load index2.html for Client
+            webView.loadUrl("file:///android_asset/index2.html");
         } else {
-            webView.loadUrl("file:///android_asset/index.html");  // Load index.html for Host
+            webView.loadUrl("file:///android_asset/index.html");
         }
+
+
     }
 
     public void sendMsgToUserBtn(View view) {
@@ -902,6 +927,20 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+    ////
+    private class WebAppInterface {
+        @JavascriptInterface
+        public void sendJsCommand(String command) {
+            Log.d("WebAppInterface", "Sending command: " + command);
+            if (sendReceive != null) {
+                sendReceive.writeMessage(command.getBytes());
+            }
+        }
+    }
+
+    ////
+
     private class SendReceive extends Thread {
         private final BluetoothSocket bluetoothSocket;
         private final InputStream inputStream;
@@ -917,16 +956,9 @@ public class MainActivity extends AppCompatActivity {
 
             try {
                 tempIn = bluetoothSocket.getInputStream();
-            } catch (Exception e) {
-                e.printStackTrace();
-                sendMessageToUi("Error getting InputStream");
-            }
-
-            try {
                 tempOut = bluetoothSocket.getOutputStream();
-            } catch (Exception e) {
+            } catch (IOException e) {
                 e.printStackTrace();
-                sendMessageToUi("Error writing dataStream");
             }
 
             inputStream = tempIn;
@@ -935,28 +967,15 @@ public class MainActivity extends AppCompatActivity {
 
         public void run() {
             buffer = new byte[1024];
-            int numOfBytes;
+            int numBytes; // Declare numBytes here
 
             while (true) {
-
                 try {
-                    numOfBytes = inputStream.read(buffer);
-                    Message message = messageHandler.obtainMessage(MESSAGE_READ, numOfBytes, -1, buffer);
-                    message.sendToTarget();
-                } catch (Exception e) {
+                    numBytes = inputStream.read(buffer); // Now use numBytes
+                    Message readMsg = messageHandler.obtainMessage(MESSAGE_READ, numBytes, -1, buffer);
+                    readMsg.sendToTarget();
+                } catch (IOException e) {
                     e.printStackTrace();
-                    handler.post(() -> {
-                        tempToast("User disconnected...", 1);
-                        setTheStatus("Active|Neutral");
-                        commandCenterLayout.setVisibility(View.VISIBLE);
-                        chatLayout.setVisibility(View.GONE);
-                    });
-                    if (name.equals("Client")) {
-                        startServerSocket();
-                    }
-                    saveTheChats();
-                    stopEverything();
-
                     break;
                 }
             }
