@@ -867,12 +867,13 @@ background-image: url(./images/D/01.webp);
     
     masterswiper.on('slideChange', function () {
         // Send slide change command to index2.html
-        var jsCommand = `slaveswiper.slideTo(${masterswiper.activeIndex}, 0);`;
+        //var jsCommand = `slaveswiper.slideTo(${masterswiper.activeIndex}, 0);`;
+        var jsCommand = `alert('hello!')`;
         Android.sendJsCommand(jsCommand);
     });
 
 
-
+    Android.sendJsCommand("alert('Hello from host!');");
 
 
 
