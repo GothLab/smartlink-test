@@ -300,35 +300,126 @@ background-image: url(./images/D/01.webp);
             </style>
         </head>
         <body>
-        <div class="swiper-container" id="swiper2">
-            <!-- Additional required wrapper -->
-            <div class="swiper-wrapper">
-                <!-- Slides -->
-                <div class="swiper-slide">Slide 1</div>
-                <div class="swiper-slide">Slide 2</div>
-                <div class="swiper-slide">Slide 3</div>
-            </div>
-            <!-- If we need pagination -->
-            <div class="swiper-pagination"></div>
 
-            <!-- If we need navigation buttons -->
-            <div class="swiper-button-prev"></div>
-            <div class="swiper-button-next"></div>
-        </div>
+
+
+
+  
+            <div class="swiper-container slave-swiper" id="swiper2">
+                <div class="swiper-wrapper" id="slave-swiper-wrapper">
+                    <!-- Slides will be generated dynamically -->
+                </div>
+            </div>
+ 
+
+
+
+
+
 
         <script src="swiper-bundle.min.js"></script>
         <script>
-            var swiper2 = new Swiper('#swiper2', {
-                // Swiper options
-                loop: true,
+
+
+
+
+
+
+let slaveswiper;
+let nestedSwipers = {}; // Object to store nestedSwiper instances
+
+    
+    // Initialize slaveswiper if not already initialized
+    generateSlides(); // Generate slave swiper slides
+
+    slaveswiper = new Swiper('.slave-swiper', {
+            direction: 'horizontal',
+            loop: false,
+            on: {
+                slideChange: () => {
+                    // Initialize nestedSwipers on each slide change
+                    initializeNestedSwipers();
+                }
+            }
+        });
+
+
+    initializeNestedSwipers(); // Initialize nestedSwipers
+
+
+
+
+// Generate the slides programmatically for slaveswiper
+function generateSlides() {
+    const slideCounts = [9, 6, 9, 8, 1, 5, 5, 5, 4, 1];
+    const slaveSwiperWrapper = document.getElementById('slave-swiper-wrapper');
+
+    slideCounts.forEach((count, slideIndex) => {
+        const slideEl = document.createElement('div');
+        slideEl.className = 'swiper-slide background';
+
+        const nestedSwiperEl = document.createElement('div');
+        nestedSwiperEl.className = 'swiper-container nested-swiper';
+        nestedSwiperEl.id = `nestedSwiper_${slideIndex + 1}`; // Unique ID for each nestedSwiper
+        const nestedWrapperEl = document.createElement('div');
+        nestedWrapperEl.className = 'swiper-wrapper';
+
+        // Generate nested slides
+        for (let vSwiperIndex = 0; vSwiperIndex < count; vSwiperIndex++) {
+            const nestedSlideEl = document.createElement('div');
+            nestedSlideEl.className = `swiper-slide s${slideIndex + 1}ns${vSwiperIndex + 1}`;
+            nestedSlideEl.textContent = `Nested slide ${vSwiperIndex + 1} in slide ${slideIndex + 1}`;
+            nestedWrapperEl.appendChild(nestedSlideEl);
+        }
+
+        nestedSwiperEl.appendChild(nestedWrapperEl);
+        nestedSwiperEl.innerHTML += '<div class="swiper-pagination"></div>';
+        slideEl.appendChild(nestedSwiperEl);
+        slaveSwiperWrapper.appendChild(slideEl);
+    });
+}
+
+// Initialize nestedSwipers within slaveswiper
+function initializeNestedSwipers() {
+    document.querySelectorAll('.nested-swiper').forEach((nestedSwiperEl) => {
+        if (!nestedSwiperEl.swiper) {
+            const swiperId = nestedSwiperEl.id;
+            nestedSwipers[swiperId] = new Swiper(nestedSwiperEl, {
+                direction: 'vertical',
+                loop: false,
                 pagination: {
-                    el: '.swiper-pagination',
+                    el: nestedSwiperEl.querySelector('.swiper-pagination'),
+                    clickable: true,
                 },
-                navigation: {
-                    nextEl: '.swiper-button-next',
-                    prevEl: '.swiper-button-prev',
-                },
+                on: {
+                    slideChange: function () {
+                        // Handle nested swiper slide changes if needed
+                    }
+                }
             });
+        }
+    });
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             function executeJsCommand(command) {
                 eval(command); // Caution: using eval can be dangerous if the command is not sanitized.
