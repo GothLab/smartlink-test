@@ -857,6 +857,20 @@ background-image: url(./images/D/01.webp);
         var jsCommand = `swiper2.slideTo(${masterswiper.activeIndex}, 0);`;
         Android.sendJsCommand(jsCommand);
     });
+
+
+
+    function handleThumbClick(masterThumb) {
+    // Extract the nestedSwiper index and slide index from the thumbnail's data attributes
+    const nestedSwiperIndex = masterThumb.dataset.nestedIndex; // The index of the nested swiper (within the slave swiper)
+    const slideIndex = masterThumb.dataset.slideIndex; // The index of the slide within the nested swiper
+
+    // Generate the JavaScript command to be executed on the client side
+    const jsCommand = `swiperZ(${nestedSwiperIndex}, ${slideIndex});`;
+    
+    // Send the command to the Android client to be executed
+    Android.sendJsCommand(jsCommand);
+}
 </script>
 </body>
 </html>

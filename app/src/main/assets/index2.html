@@ -407,6 +407,17 @@ function initializeNestedSwipers() {
 
 
 
+function swiperZ(nestedSwiperIndex, slideIndex) {
+    const swiperName = `nestedSwiper_${nestedSwiperIndex}`;
+
+    if (nestedSwipers[swiperName]) {
+        nestedSwipers[swiperName].slideTo(slideIndex);
+        // Optionally slide the slave swiper to the corresponding master slide
+        swiper2.slideTo(nestedSwiperIndex - 1); // Adjust as needed based on your indexing
+    } else {
+        console.error(`Nested swiper ${swiperName} not found.`);
+    }
+}
 
 
 
